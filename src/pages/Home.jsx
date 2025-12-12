@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getChallenges } from "../services/api";
+import { getChallenges } from "../services/challengeService";
 import { Link } from "react-router-dom";
 
 const Home = () => {

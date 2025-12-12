@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getChallengeById, joinChallenge } from "../services/api";
+import { getChallengeById, joinChallenge, } from "../services/challengeService";
 
 const ChallengeDetails = () => {
     const { id } = useParams();

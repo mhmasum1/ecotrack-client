@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getUserChallenges, updateProgress } from "../services/api";
+import { getUserChallenges, updateProgress } from "../services/userChallengeService";
 
 const MyActivities = () => {
     const userId = "rony@example.com"; // temp user identifier
