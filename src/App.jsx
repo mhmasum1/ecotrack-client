@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import PrivateRoute from "./routes/PrivateRoute";
 
+
 const App = () => {
   return (
     <div className="min-h-screen flex flex-col bg-base-100">
