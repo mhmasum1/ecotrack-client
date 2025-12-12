@@ -8,7 +8,7 @@ import {
     signOut,
     updateProfile,
 } from "firebase/auth";
-import { auth } from "../firebase"; // তোমার firebase.js অনুযায়ী path দেবে
+import { auth } from "../firebase";
 import { AuthContext } from "./AuthContext";
 
 const googleProvider = new GoogleAuthProvider();

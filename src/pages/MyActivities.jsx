@@ -1,37 +1,61 @@
-import React, { useState } from "react";
-import { getUserChallenges, updateProgress } from "../services/userChallengeService";
+import React, { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
+import {
+    getUserChallenges,
+    updateProgress,
+} from "../services/userChallengeService";
 
 const MyActivities = () => {
-    const userId = "rony@example.com"; // temp user identifier
+    const { user } = useContext(AuthContext);
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const userId = user?.email;
+
     const loadActivities = () => {
+        if (!userId) return;
         setLoading(true);
         getUserChallenges(userId)
             .then((res) => {
                 setActivities(res.data);
                 setLoading(false);
             })
-            .catch((err) => {
-                console.error("Error loading activities:", err.message);
+            .catch(() => {
                 setLoading(false);
             });
     };
+
+    useEffect(() => {
+        if (userId) {
+            loadActivities();
+        } else {
+            setLoading(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId]);
 
     const handleUpdateProgress = (activity) => {
         const newProgress = Math.min((activity.progress || 0) + 10, 100);
 
         updateProgress(activity._id, { progress: newProgress })
             .then(() => {
-                window.alert("Progress updated!");
                 loadActivities();
             })
-            .catch((err) => {
-                console.error("Error updating progress:", err.message);
-                window.alert("Could not update progress");
-            });
+            .catch(() => { });
     };
+
+    if (!userId) {
+        return (
+            <div className="max-w-6xl mx-auto px-4 py-8">
+                <h1 className="text-3xl font-semibold text-emerald-900 mb-2">
+                    My Activities
+                </h1>
+                <p className="text-sm text-gray-600">
+                    Please login to view your activities.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -67,13 +91,6 @@ const MyActivities = () => {
                                         {act.status || "Ongoing"}
                                     </span>
                                 </p>
-                                <p className="text-xs text-gray-500">
-                                    Joined:{" "}
-                                    {act.joinDate
-                                        ? new Date(act.joinDate).toLocaleDateString()
-                                        : "N/A"}
-                                </p>
-
                                 <div className="mt-3">
                                     <div className="flex justify-between text-xs mb-1">
                                         <span>Progress</span>
@@ -85,7 +102,6 @@ const MyActivities = () => {
                                         max="100"
                                     ></progress>
                                 </div>
-
                                 <div className="card-actions justify-end mt-4">
                                     <button
                                         className="btn btn-sm btn-outline btn-primary"

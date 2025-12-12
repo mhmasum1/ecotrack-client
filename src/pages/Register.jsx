@@ -23,7 +23,7 @@ const Register = () => {
         if (value.length < 6) return "Password must be at least 6 characters";
         if (!/[A-Z]/.test(value)) return "At least one uppercase letter required";
         if (!/[a-z]/.test(value)) return "At least one lowercase letter required";
-        if (!/[!@#$%^&*(),.?\":{}|<>]/.test(value))
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(value))
             return "At least one special character required";
         return "";
     };
