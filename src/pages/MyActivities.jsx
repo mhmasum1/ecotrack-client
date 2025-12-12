@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { getUserChallenges, updateProgress } from "../services/userChallengeService";
 
 const MyActivities = () => {
@@ -18,11 +18,6 @@ const MyActivities = () => {
                 setLoading(false);
             });
     };
-
-    useEffect(() => {
-        loadActivities();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const handleUpdateProgress = (activity) => {
         const newProgress = Math.min((activity.progress || 0) + 10, 100);
