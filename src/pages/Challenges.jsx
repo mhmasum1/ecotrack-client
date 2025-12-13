@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-    getChallenges,
-    joinChallenge,
-} from "../services/challengeService";
+import { useAuth } from "../context/AuthContext";
+import { getChallenges, joinChallenge } from "../services/challengeService";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Challenges = () => {
     const [challenges, setChallenges] = useState([]);
@@ -11,6 +10,8 @@ const Challenges = () => {
     const [category, setCategory] = useState("");
     const [minParticipants, setMinParticipants] = useState("");
     const [maxParticipants, setMaxParticipants] = useState("");
+
+    const { user } = useAuth();
 
     const loadChallenges = () => {
         setLoading(true);
@@ -26,6 +27,7 @@ const Challenges = () => {
             })
             .catch((err) => {
                 console.error("Error loading challenges:", err.message);
+                toast.error("Failed to load challenges");
                 setLoading(false);
             });
     };
@@ -40,21 +42,25 @@ const Challenges = () => {
         loadChallenges();
     };
 
-    const handleJoin = (id) => {
-        const userId = "rony@example.com"; // temp user
-        joinChallenge(id, userId)
-            .then(() => {
-                window.alert("Joined challenge successfully!");
-                loadChallenges();
-            })
-            .catch((err) => {
-                console.error("Error joining challenge:", err.message);
-                window.alert("Could not join challenge");
-            });
+    const handleJoin = async (id) => {
+        try {
+            if (!user?.email) {
+                toast.error("Please login to join a challenge");
+                return;
+            }
+
+            await joinChallenge(id, user.email);
+            toast.success("Joined challenge successfully!");
+            loadChallenges();
+        } catch (err) {
+            console.error("Error joining challenge:", err.message);
+            toast.error("Could not join challenge");
+        }
     };
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
+            {/* ✅ Header + Add Challenge button */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
                 <div>
                     <h1 className="text-3xl font-semibold text-emerald-900">
@@ -64,6 +70,16 @@ const Challenges = () => {
                         Filter by category and participants, then join a challenge.
                     </p>
                 </div>
+
+                {/* ✅ এখানে বসবে Add Challenge button */}
+                {user && (
+                    <Link
+                        to="/challenges/add"
+                        className="btn btn-sm btn-primary w-full md:w-auto"
+                    >
+                        Add Challenge
+                    </Link>
+                )}
             </div>
 
             {/* Filters */}
@@ -150,12 +166,14 @@ const Challenges = () => {
                                 </p>
 
                                 <div className="mt-4 flex justify-between items-center">
+                                    {/* ✅ route ঠিক করলাম */}
                                     <Link
-                                        to={`/challenge/${ch._id}`}
+                                        to={`/challenges/${ch._id}`}
                                         className="btn btn-xs btn-outline btn-emerald"
                                     >
                                         Details
                                     </Link>
+
                                     <button
                                         type="button"
                                         className="btn btn-xs btn-primary"

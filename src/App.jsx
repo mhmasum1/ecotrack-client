@@ -10,6 +10,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import PrivateRoute from "./routes/PrivateRoute";
+import AddChallenge from "./pages/AddChallenge";
+import NotFound from "./pages/NotFound";
 
 
 const App = () => {
@@ -28,6 +30,14 @@ const App = () => {
             element={
               <PrivateRoute>
                 <MyActivities />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/challenges/add"
+            element={
+              <PrivateRoute>
+                <AddChallenge />
               </PrivateRoute>
             }
           />
@@ -52,6 +62,7 @@ const App = () => {
               </div>
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />
