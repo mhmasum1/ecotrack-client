@@ -1,10 +1,10 @@
-import React, { useContext, useState } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
-    const { registerUser, signInGoogle, updateUserProfile, setLoading } =
-        useContext(AuthContext);
+    const { registerUser, signInGoogle, updateUserProfile } = useAuth();
 
     const [name, setName] = useState("");
     const [photoURL, setPhotoURL] = useState("");
@@ -12,7 +12,6 @@ const Register = () => {
     const [password, setPassword] = useState("");
 
     const [passwordError, setPasswordError] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
     const navigate = useNavigate();
@@ -34,9 +33,8 @@ const Register = () => {
         setPasswordError(validatePassword(value));
     };
 
-    const handleRegister = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
-        setErrorMsg("");
 
         const err = validatePassword(password);
         if (err) {
@@ -44,35 +42,34 @@ const Register = () => {
             return;
         }
 
-        setSubmitting(true);
+        try {
+            setSubmitting(true);
 
-        registerUser(email, password)
-            .then(() => updateUserProfile(name, photoURL))
-            .then(() => {
-                navigate(from, { replace: true });
-            })
-            .catch((err) => {
-                setErrorMsg(err.message);
-            })
-            .finally(() => {
-                setSubmitting(false);
-                setLoading(false);
-            });
+            await registerUser(email, password);
+            await updateUserProfile(name, photoURL);
+
+            toast.success("Account created successfully ✅");
+            navigate(from, { replace: true });
+        } catch (err) {
+            console.error(err);
+            toast.error(err?.message || "Registration failed");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
-    const handleGoogleRegister = () => {
-        setErrorMsg("");
-        setSubmitting(true);
-
-        signInGoogle()
-            .then(() => {
-                navigate(from, { replace: true });
-            })
-            .catch((err) => setErrorMsg(err.message))
-            .finally(() => {
-                setSubmitting(false);
-                setLoading(false);
-            });
+    const handleGoogleRegister = async () => {
+        try {
+            setSubmitting(true);
+            await signInGoogle();
+            toast.success("Signed in with Google ✅");
+            navigate(from, { replace: true });
+        } catch (err) {
+            console.error(err);
+            toast.error(err?.message || "Google sign-in failed");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -82,10 +79,6 @@ const Register = () => {
                 <p className="text-sm text-center text-gray-500 mb-4">
                     Create your account and start tracking your sustainable journey.
                 </p>
-
-                {errorMsg && (
-                    <p className="text-error text-xs mb-2 text-center">{errorMsg}</p>
-                )}
 
                 <form onSubmit={handleRegister} className="space-y-4">
                     <div className="form-control">
@@ -110,6 +103,7 @@ const Register = () => {
                             className="input input-bordered w-full"
                             value={photoURL}
                             onChange={(e) => setPhotoURL(e.target.value)}
+                            placeholder="https://..."
                         />
                     </div>
 
@@ -132,8 +126,7 @@ const Register = () => {
                         </label>
                         <input
                             type="password"
-                            className={`input input-bordered w-full ${passwordError ? "input-error" : ""
-                                }`}
+                            className={`input input-bordered w-full ${passwordError ? "input-error" : ""}`}
                             value={password}
                             onChange={handlePasswordChange}
                             required
@@ -167,6 +160,10 @@ const Register = () => {
                     <Link to="/login" className="link link-primary">
                         Login
                     </Link>
+                </p>
+
+                <p className="text-xs text-gray-500 text-center mt-2">
+                    By registering, you agree to EcoTrack’s community guidelines.
                 </p>
             </div>
         </div>

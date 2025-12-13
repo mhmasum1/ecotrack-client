@@ -71,7 +71,6 @@ const Challenges = () => {
                     </p>
                 </div>
 
-                {/* ✅ এখানে বসবে Add Challenge button */}
                 {user && (
                     <Link
                         to="/challenges/add"

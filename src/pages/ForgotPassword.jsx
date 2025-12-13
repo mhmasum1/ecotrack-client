@@ -9,9 +9,10 @@ const ForgotPassword = () => {
                     Forgot Password
                 </h1>
                 <p className="text-sm text-gray-600 mb-4 text-center">
-                    For this assignment, password reset flow is not implemented.
-                    Please use Google login or contact the admin.
+                    For this assignment, password reset is not required.
+                    Please login using Google or try again with your correct password.
                 </p>
+
                 <div className="flex justify-center gap-3 mt-4">
                     <Link to="/login" className="btn btn-sm btn-primary">
                         Back to Login
