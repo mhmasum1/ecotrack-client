@@ -1,64 +1,58 @@
-import React, { useContext, useState } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
-    const { signInUser, signInGoogle, setLoading } = useContext(AuthContext);
+    const { signInUser, signInGoogle } = useAuth();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || "/";
 
-    const handleEmailLogin = (e) => {
+    const handleEmailLogin = async (e) => {
         e.preventDefault();
-        setErrorMsg("");
-        setSubmitting(true);
 
-        signInUser(email, password)
-            .then(() => {
-                navigate(from, { replace: true });
-            })
-            .catch((err) => {
-                setErrorMsg(err.message);
-            })
-            .finally(() => {
-                setSubmitting(false);
-                setLoading(false);
-            });
+        try {
+            setSubmitting(true);
+            await signInUser(email, password);
+            toast.success("Login successful ✅");
+            navigate(from, { replace: true });
+        } catch (err) {
+            console.error(err);
+            toast.error(err?.message || "Invalid email or password");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
-    const handleGoogleLogin = () => {
-        setErrorMsg("");
-        setSubmitting(true);
-
-        signInGoogle()
-            .then(() => {
-                navigate(from, { replace: true });
-            })
-            .catch((err) => {
-                setErrorMsg(err.message);
-            })
-            .finally(() => {
-                setSubmitting(false);
-                setLoading(false);
-            });
+    const handleGoogleLogin = async () => {
+        try {
+            setSubmitting(true);
+            await signInGoogle();
+            toast.success("Logged in with Google ✅");
+            navigate(from, { replace: true });
+        } catch (err) {
+            console.error(err);
+            toast.error(err?.message || "Google login failed");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
         <div className="min-h-[70vh] flex items-center justify-center px-4">
             <div className="w-full max-w-md bg-base-100 shadow-xl rounded-2xl p-6">
-                <h1 className="text-2xl font-bold text-center mb-2">Login to EcoTrack</h1>
+                <h1 className="text-2xl font-bold text-center mb-2">
+                    Login to EcoTrack
+                </h1>
                 <p className="text-sm text-center text-gray-500 mb-4">
                     Sign in with your email or Google account.
                 </p>
-
-                {errorMsg && (
-                    <p className="text-error text-xs mb-2 text-center">{errorMsg}</p>
-                )}
 
                 <form onSubmit={handleEmailLogin} className="space-y-4">
                     <div className="form-control">
