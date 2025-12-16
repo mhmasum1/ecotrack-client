@@ -1,6 +1,5 @@
 import api from "../lib/apiClient";
 
-// CHALLENGE APIs
 export const getChallenges = (params = {}) =>
     api.get("/api/challenges", { params });
 
@@ -16,5 +15,14 @@ export const updateChallenge = (id, data) =>
 export const deleteChallenge = (id) =>
     api.delete(`/api/challenges/${id}`);
 
-export const joinChallenge = (id, userId) =>
-    api.post(`/api/challenges/join/${id}`, { userId });
+export const joinChallenge = (challengeId, userId) =>
+    api.post("/api/user-challenges", {
+        userId,
+        challengeId,
+    });
+
+export const getUserChallenges = (userId) =>
+    api.get("/api/user-challenges", { params: { userId } });
+
+export const updateUserChallenge = (userChallengeId, data) =>
+    api.patch(`/api/user-challenges/${userChallengeId}`, data);

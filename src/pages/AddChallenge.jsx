@@ -29,25 +29,43 @@ const AddChallenge = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!formData.title.trim() || !formData.category.trim()) {
+            toast.error("Title and Category are required");
+            return;
+        }
+
         try {
             setSubmitting(true);
 
             const payload = {
                 ...formData,
-                duration: Number(formData.duration) || 0,
-                createdBy: user?.email,
+                title: formData.title.trim(),
+                category: formData.category.trim(),
+                description: formData.description?.trim() || "",
+                target: formData.target?.trim() || "",
+                impactMetric: formData.impactMetric?.trim() || "",
+                imageUrl: formData.imageUrl?.trim() || "",
+                duration: formData.duration ? Number(formData.duration) : undefined,
+                startDate: formData.startDate ? new Date(formData.startDate).toISOString() : undefined,
+                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
+                createdBy: user?.email || "admin",
             };
 
             await createChallenge(payload);
             toast.success("Challenge created successfully");
             navigate("/challenges");
         } catch (err) {
-            console.error("Error creating challenge:", err.message);
-            toast.error("Failed to create challenge");
+            console.error("Error creating challenge:", err);
+            const msg =
+                err?.response?.data?.message ||
+                err?.message ||
+                "Failed to create challenge";
+            toast.error(msg);
         } finally {
             setSubmitting(false);
         }
     };
+
 
     return (
         <div className="max-w-3xl mx-auto px-4 py-10">
