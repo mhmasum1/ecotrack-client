@@ -1,133 +1,123 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import FeaturedCarousel from "../components/FeaturedCarousel";
 import { getChallenges } from "../services/challengeService";
 import { getRecentTips } from "../services/tipsService";
 import { getUpcomingEvents } from "../services/eventsService";
-
-const FALLBACK_HERO_IMG =
-    "https://images.pexels.com/photos/886521/pexels-photo-886521.jpeg?auto=compress&cs=tinysrgb&w=800";
+import { getStats } from "../services/statsService";
 
 const Home = () => {
     const [featuredChallenges, setFeaturedChallenges] = useState([]);
     const [tips, setTips] = useState([]);
     const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState(null);
 
-    // hero carousel index
-    const [heroIndex, setHeroIndex] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [statsLoading, setStatsLoading] = useState(true);
 
     useEffect(() => {
         const loadHomeData = async () => {
             try {
                 setLoading(true);
+                setStatsLoading(true);
 
-                const [chRes, tipsRes, eventsRes] = await Promise.all([
+                const [chRes, tipsRes, eventsRes, statsRes] = await Promise.all([
                     getChallenges(),
                     getRecentTips(),
                     getUpcomingEvents(),
+                    getStats(),
                 ]);
 
                 const challenges = chRes?.data || [];
-                const featured = challenges.slice(0, 3);
+                setFeaturedChallenges(challenges.slice(0, 3));
 
-                setFeaturedChallenges(featured);
                 setTips(tipsRes?.data || []);
                 setEvents(eventsRes?.data || []);
+
+                setStats(statsRes?.data || null);
             } catch (err) {
-                console.error("Error loading home data:", err?.message || err);
+                console.error("Error loading home data:", err);
+                // fallback so UI doesn't break
+                setStats(null);
+                setFeaturedChallenges([]);
+                setTips([]);
+                setEvents([]);
             } finally {
                 setLoading(false);
+                setStatsLoading(false);
             }
         };
 
         loadHomeData();
     }, []);
 
-    // auto-rotate hero when featured loaded
-    useEffect(() => {
-        if (!featuredChallenges.length) return;
-
-        const interval = setInterval(() => {
-            setHeroIndex((prev) => (prev + 1) % featuredChallenges.length);
-        }, 4000);
-
-        return () => clearInterval(interval);
-    }, [featuredChallenges]);
-
-    const activeHero = featuredChallenges[heroIndex];
-
     return (
         <div className="min-h-[calc(100vh-140px)] bg-base-100">
-            {/* Hero Section (Carousel) */}
-            <section className="hero bg-emerald-900 text-emerald-50">
-                <div className="hero-content flex-col lg:flex-row-reverse max-w-6xl mx-auto py-10">
-                    <img
-                        src={activeHero?.imageUrl || FALLBACK_HERO_IMG}
-                        alt={activeHero?.title || "EcoTrack"}
-                        className="max-w-sm rounded-2xl shadow-2xl object-cover"
-                    />
+            {/* Hero Carousel */}
+            <section className="bg-emerald-900 text-emerald-50">
+                <div className="max-w-6xl mx-auto px-4 py-10">
+                    <FeaturedCarousel challenges={featuredChallenges} />
+                </div>
+            </section>
 
-                    <div>
-                        <h1 className="text-4xl md:text-5xl font-bold">
-                            {activeHero?.title ? (
-                                <>
-                                    {activeHero.title}{" "}
-                                    <span className="text-emerald-300">Challenge</span>
-                                </>
-                            ) : (
-                                <>
-                                    Track Your{" "}
-                                    <span className="text-emerald-300">Eco Journey</span>
-                                </>
-                            )}
-                        </h1>
-
-                        <p className="py-4 text-emerald-100 text-sm md:text-base max-w-xl">
-                            {activeHero?.description ||
-                                "Join sustainability challenges, reduce your carbon footprint, and see your impact grow over time. EcoTrack helps you turn small actions into big change. 🌍"}
-                        </p>
-
-                        <div className="flex gap-3 flex-wrap">
-                            {activeHero?._id && (
-                                <Link
-                                    to={`/challenges/${activeHero._id}`}
-                                    className="btn btn-primary btn-sm md:btn-md"
-                                >
-                                    View Challenge
-                                </Link>
-                            )}
-
-                            <Link
-                                to="/challenges"
-                                className="btn btn-outline btn-sm md:btn-md border-emerald-200 text-emerald-50"
-                            >
-                                Explore Challenges
-                            </Link>
-
-                            <Link
-                                to="/my-activities"
-                                className="btn btn-outline btn-sm md:btn-md border-emerald-200 text-emerald-50"
-                            >
-                                View My Activities
-                            </Link>
-                        </div>
-
-                        {/* dots */}
-                        {featuredChallenges.length > 1 && (
-                            <div className="mt-5 flex gap-2">
-                                {featuredChallenges.map((_, i) => (
-                                    <button
-                                        key={i}
-                                        type="button"
-                                        onClick={() => setHeroIndex(i)}
-                                        className={`h-2.5 w-2.5 rounded-full ${i === heroIndex ? "bg-emerald-300" : "bg-emerald-700"
-                                            }`}
-                                        aria-label={`Go to slide ${i + 1}`}
-                                    />
-                                ))}
-                            </div>
-                        )}
+            {/* Live Community Statistics */}
+            <section className="bg-emerald-50 border-t border-emerald-100">
+                <div className="max-w-6xl mx-auto px-4 py-10">
+                    <div className="flex items-center justify-between gap-3 mb-6">
+                        <h2 className="text-xl font-semibold text-emerald-900">
+                            Community Impact (Live)
+                        </h2>
+                        <span className="text-xs text-gray-500">Auto updates from DB</span>
                     </div>
+
+                    {statsLoading ? (
+                        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div
+                                    key={i}
+                                    className="rounded-xl bg-white border border-emerald-100 p-5 shadow-sm animate-pulse"
+                                >
+                                    <div className="h-3 bg-slate-200 rounded w-1/2 mb-3" />
+                                    <div className="h-7 bg-slate-100 rounded w-2/3" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : !stats ? (
+                        <p className="text-sm text-gray-500">
+                            Stats not available right now. Make sure <code>/api/stats</code>{" "}
+                            returns data.
+                        </p>
+                    ) : (
+                        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+                            <div className="rounded-xl bg-white border border-emerald-100 p-5 shadow-sm">
+                                <p className="text-xs text-gray-500">Total Participants</p>
+                                <p className="text-2xl font-bold text-emerald-800">
+                                    {stats.totalParticipants ?? 0}
+                                </p>
+                            </div>
+
+                            <div className="rounded-xl bg-white border border-emerald-100 p-5 shadow-sm">
+                                <p className="text-xs text-gray-500">CO₂ Saved</p>
+                                <p className="text-2xl font-bold text-emerald-800">
+                                    {(stats.totalCO2SavedKg ?? 0).toFixed(1)} kg
+                                </p>
+                            </div>
+
+                            <div className="rounded-xl bg-white border border-emerald-100 p-5 shadow-sm">
+                                <p className="text-xs text-gray-500">Plastic Reduced</p>
+                                <p className="text-2xl font-bold text-emerald-800">
+                                    {(stats.totalPlasticReducedKg ?? 0).toFixed(1)} kg
+                                </p>
+                            </div>
+
+                            <div className="rounded-xl bg-white border border-emerald-100 p-5 shadow-sm">
+                                <p className="text-xs text-gray-500">Total Challenges</p>
+                                <p className="text-2xl font-bold text-emerald-800">
+                                    {stats.totalChallenges ?? 0}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -160,6 +150,7 @@ const Home = () => {
                                 >
                                     <div className="card-body">
                                         <h3 className="card-title text-emerald-800">{ch.title}</h3>
+
                                         <div className="flex items-center gap-2 text-xs">
                                             <div className="badge badge-ghost text-emerald-700">
                                                 {ch.category || "General"}
@@ -168,13 +159,15 @@ const Home = () => {
                                                 Participants: {ch.participants ?? 0}
                                             </span>
                                         </div>
+
                                         <p className="text-sm text-gray-600 mt-2 line-clamp-3">
                                             {ch.description || "No description provided."}
                                         </p>
+
                                         <div className="card-actions justify-end mt-4">
                                             <Link
                                                 to={`/challenges/${ch._id}`}
-                                                className="btn btn-sm btn-outline btn-emerald"
+                                                className="btn btn-sm btn-outline"
                                             >
                                                 View details
                                             </Link>
@@ -224,9 +217,11 @@ const Home = () => {
                                             {tip.category || "General"}
                                         </span>
                                     </div>
+
                                     <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                                         {tip.content}
                                     </p>
+
                                     <div className="flex items-center justify-between text-[11px] text-gray-500">
                                         <span>By {tip.authorName || "EcoTrack User"}</span>
                                         <span>Upvotes: {tip.upvotes || 0}</span>
@@ -275,15 +270,18 @@ const Home = () => {
                                         <h3 className="card-title text-emerald-800 text-base">
                                             {ev.title}
                                         </h3>
+
                                         <p className="text-xs text-gray-500">
                                             {ev.location || "TBA"} •{" "}
                                             {ev.date
                                                 ? new Date(ev.date).toLocaleDateString()
                                                 : "Date TBA"}
                                         </p>
+
                                         <p className="text-sm text-gray-600 line-clamp-2 mb-2">
                                             {ev.description}
                                         </p>
+
                                         <p className="text-[11px] text-gray-500">
                                             {ev.currentParticipants || 0} / {ev.maxParticipants || 0}{" "}
                                             participants joined
@@ -294,7 +292,82 @@ const Home = () => {
                         </div>
                     )}
                 </section>
+                {/* Why Go Green */}
+                <section className="bg-emerald-50 rounded-2xl p-8 border border-emerald-100">
+                    <h2 className="text-2xl font-semibold text-emerald-900 mb-4">
+                        Why Go Green?
+                    </h2>
+
+                    <ul className="space-y-3 text-sm text-gray-700 list-disc list-inside">
+                        <li>
+                            Reduce environmental pollution and protect natural ecosystems.
+                        </li>
+                        <li>
+                            Lower your carbon footprint through small, daily sustainable actions.
+                        </li>
+                        <li>
+                            Save money by reducing waste, energy, and water consumption.
+                        </li>
+                        <li>
+                            Improve community well-being by encouraging responsible living.
+                        </li>
+                        <li>
+                            Create a healthier planet for future generations.
+                        </li>
+                    </ul>
+                </section>
+
+                {/* How It Works */}
+                <section className="bg-base-100 rounded-2xl p-8 border border-emerald-50 shadow-sm">
+                    <h2 className="text-2xl font-semibold text-emerald-900 mb-6">
+                        How EcoTrack Works
+                    </h2>
+
+                    <div className="grid gap-6 md:grid-cols-3">
+                        {/* Step 1 */}
+                        <div className="text-center">
+                            <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold mb-3">
+                                1
+                            </div>
+                            <h3 className="font-semibold text-emerald-800 mb-2">
+                                Join a Challenge
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                Browse sustainability challenges and join the one that fits your lifestyle.
+                            </p>
+                        </div>
+
+                        {/* Step 2 */}
+                        <div className="text-center">
+                            <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold mb-3">
+                                2
+                            </div>
+                            <h3 className="font-semibold text-emerald-800 mb-2">
+                                Track Progress
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                Update your progress and see how your actions reduce environmental impact.
+                            </p>
+                        </div>
+
+                        {/* Step 3 */}
+                        <div className="text-center">
+                            <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold mb-3">
+                                3
+                            </div>
+                            <h3 className="font-semibold text-emerald-800 mb-2">
+                                Share & Inspire
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                Share eco-tips, inspire others, and grow together as a green community.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
             </div>
+
+
         </div>
     );
 };

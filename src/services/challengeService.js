@@ -16,10 +16,8 @@ export const deleteChallenge = (id) =>
     api.delete(`/api/challenges/${id}`);
 
 export const joinChallenge = (challengeId, userId) =>
-    api.post("/api/user-challenges", {
-        userId,
-        challengeId,
-    });
+    api.post(`/api/challenges/join/${challengeId}`, { userId });
+
 
 export const getUserChallenges = (userId) =>
     api.get("/api/user-challenges", { params: { userId } });
