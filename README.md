@@ -1,16 +1,101 @@
-# React + Vite
+# 🌱 EcoTrack — Sustainable Living Community
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+🔗 **Live Site:** https://ecotrack-sustainable.web.app  
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📌 Project Overview
 
-## React Compiler
+**EcoTrack** is a sustainability-focused community platform where users can discover and join eco-friendly challenges, track their environmental impact, explore community tips, and stay updated on upcoming green events. The platform emphasizes measurable, community-driven progress toward a greener future.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## ✨ Key Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- 🌍 **Sustainability Challenges**
+  - Browse and join environmental challenges (Waste Reduction, Energy Conservation, Green Living, etc.)
+  - Dynamic participant count and challenge details
+  - Challenge data fetched from MongoDB via REST API
+
+- 📊 **Live Community Impact Statistics**
+  - Aggregated environmental impact (e.g., kg plastic saved, CO₂ reduced)
+  - Calculated dynamically from challenge data stored in the database
+
+- 💡 **Recent Community Tips**
+  - Displays latest eco tips shared by users
+  - Shows title, author name, category, upvotes, and time preview
+
+- 📅 **Upcoming Green Events**
+  - Shows upcoming eco-friendly events
+  - Includes event date, location, description, and participant info
+
+- 🔐 **Authentication & Protected Routes**
+  - Firebase Authentication (Email/Password + Google Login)
+  - Protected routes for authenticated users only
+  - Logged-in users remain authenticated even after page reload
+
+---
+
+## 🧭 Routing & Reload Safety
+
+- Built as a **Single Page Application (SPA)** using React Router
+- Firebase Hosting configured with rewrite rules:
+  - All routes redirect to `/index.html`
+  - Prevents 404 errors on page reload
+- Fully compliant with assignment requirement:
+  > “Ensure that the page doesn't throw any error on reloading from any routes.”
+
+---
+
+## 🛠️ Tech Stack (Client Side)
+
+- **React** (Vite)
+- **React Router DOM**
+- **Tailwind CSS** + **DaisyUI**
+- **Firebase Authentication**
+- **Firebase Hosting**
+- **Axios** (API communication)
+
+---
+
+## 🔐 Authentication Features
+
+- Email & Password login
+- Google Sign-In
+- Toast notifications for success & error handling (no browser alerts)
+- Redirects users to intended route after login
+
+---
+
+## 🚀 Deployment
+
+- Client hosted on **Firebase Hosting**
+- Production build generated using `npm run build`
+- Hosting configured with:
+  - `dist` as public directory
+  - SPA rewrite enabled
+- Firebase authorized domain configured for authentication
+
+---
+
+## 📄 Assignment Compliance Checklist
+
+✔ Minimum required GitHub commits on client side  
+✔ No lorem ipsum text used  
+✔ No default browser alerts used  
+✔ Dynamic data loaded from MongoDB  
+✔ SPA reload safety ensured  
+✔ Firebase authentication configured  
+✔ Responsive UI for mobile, tablet, and desktop  
+
+---
+
+## 👤 Author
+
+**Mahmudul Hasan Masum**
+Junior Full-Stack JavaScript Developer  
+Interested in sustainable technology and data-driven applications
+
+---
+
+💚 *EcoTrack — Small actions, measurable impact.*
