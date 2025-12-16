@@ -4,11 +4,17 @@ import { getChallenges } from "../services/challengeService";
 import { getRecentTips } from "../services/tipsService";
 import { getUpcomingEvents } from "../services/eventsService";
 
+const FALLBACK_HERO_IMG =
+    "https://images.pexels.com/photos/886521/pexels-photo-886521.jpeg?auto=compress&cs=tinysrgb&w=800";
+
 const Home = () => {
     const [featuredChallenges, setFeaturedChallenges] = useState([]);
     const [tips, setTips] = useState([]);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // hero carousel index
+    const [heroIndex, setHeroIndex] = useState(0);
 
     useEffect(() => {
         const loadHomeData = async () => {
@@ -22,11 +28,13 @@ const Home = () => {
                 ]);
 
                 const challenges = chRes?.data || [];
-                setFeaturedChallenges(challenges.slice(0, 3));
+                const featured = challenges.slice(0, 3);
+
+                setFeaturedChallenges(featured);
                 setTips(tipsRes?.data || []);
                 setEvents(eventsRes?.data || []);
             } catch (err) {
-                console.error("Error loading home data:", err.message);
+                console.error("Error loading home data:", err?.message || err);
             } finally {
                 setLoading(false);
             }
@@ -35,33 +43,67 @@ const Home = () => {
         loadHomeData();
     }, []);
 
+    // auto-rotate hero when featured loaded
+    useEffect(() => {
+        if (!featuredChallenges.length) return;
+
+        const interval = setInterval(() => {
+            setHeroIndex((prev) => (prev + 1) % featuredChallenges.length);
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [featuredChallenges]);
+
+    const activeHero = featuredChallenges[heroIndex];
+
     return (
         <div className="min-h-[calc(100vh-140px)] bg-base-100">
-            {/* Hero Section */}
+            {/* Hero Section (Carousel) */}
             <section className="hero bg-emerald-900 text-emerald-50">
                 <div className="hero-content flex-col lg:flex-row-reverse max-w-6xl mx-auto py-10">
                     <img
-                        src="https://images.pexels.com/photos/886521/pexels-photo-886521.jpeg?auto=compress&cs=tinysrgb&w=800"
-                        alt="EcoTrack"
-                        className="max-w-sm rounded-2xl shadow-2xl"
+                        src={activeHero?.imageUrl || FALLBACK_HERO_IMG}
+                        alt={activeHero?.title || "EcoTrack"}
+                        className="max-w-sm rounded-2xl shadow-2xl object-cover"
                     />
+
                     <div>
                         <h1 className="text-4xl md:text-5xl font-bold">
-                            Track Your{" "}
-                            <span className="text-emerald-300">Eco Journey</span>
+                            {activeHero?.title ? (
+                                <>
+                                    {activeHero.title}{" "}
+                                    <span className="text-emerald-300">Challenge</span>
+                                </>
+                            ) : (
+                                <>
+                                    Track Your{" "}
+                                    <span className="text-emerald-300">Eco Journey</span>
+                                </>
+                            )}
                         </h1>
+
                         <p className="py-4 text-emerald-100 text-sm md:text-base max-w-xl">
-                            Join sustainability challenges, reduce your carbon footprint,
-                            and see your impact grow over time. EcoTrack helps you turn
-                            small actions into big change. 🌍
+                            {activeHero?.description ||
+                                "Join sustainability challenges, reduce your carbon footprint, and see your impact grow over time. EcoTrack helps you turn small actions into big change. 🌍"}
                         </p>
-                        <div className="flex gap-3">
+
+                        <div className="flex gap-3 flex-wrap">
+                            {activeHero?._id && (
+                                <Link
+                                    to={`/challenges/${activeHero._id}`}
+                                    className="btn btn-primary btn-sm md:btn-md"
+                                >
+                                    View Challenge
+                                </Link>
+                            )}
+
                             <Link
                                 to="/challenges"
-                                className="btn btn-primary btn-sm md:btn-md"
+                                className="btn btn-outline btn-sm md:btn-md border-emerald-200 text-emerald-50"
                             >
                                 Explore Challenges
                             </Link>
+
                             <Link
                                 to="/my-activities"
                                 className="btn btn-outline btn-sm md:btn-md border-emerald-200 text-emerald-50"
@@ -69,6 +111,22 @@ const Home = () => {
                                 View My Activities
                             </Link>
                         </div>
+
+                        {/* dots */}
+                        {featuredChallenges.length > 1 && (
+                            <div className="mt-5 flex gap-2">
+                                {featuredChallenges.map((_, i) => (
+                                    <button
+                                        key={i}
+                                        type="button"
+                                        onClick={() => setHeroIndex(i)}
+                                        className={`h-2.5 w-2.5 rounded-full ${i === heroIndex ? "bg-emerald-300" : "bg-emerald-700"
+                                            }`}
+                                        aria-label={`Go to slide ${i + 1}`}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
@@ -80,10 +138,7 @@ const Home = () => {
                         <h2 className="text-2xl font-semibold text-emerald-900">
                             Featured Challenges
                         </h2>
-                        <Link
-                            to="/challenges"
-                            className="link link-primary text-sm"
-                        >
+                        <Link to="/challenges" className="link link-primary text-sm">
                             View all challenges →
                         </Link>
                     </div>
@@ -104,9 +159,7 @@ const Home = () => {
                                     className="card bg-base-100 shadow-md border border-emerald-50"
                                 >
                                     <div className="card-body">
-                                        <h3 className="card-title text-emerald-800">
-                                            {ch.title}
-                                        </h3>
+                                        <h3 className="card-title text-emerald-800">{ch.title}</h3>
                                         <div className="flex items-center gap-2 text-xs">
                                             <div className="badge badge-ghost text-emerald-700">
                                                 {ch.category || "General"}
@@ -138,6 +191,7 @@ const Home = () => {
                     <h2 className="text-2xl font-semibold text-emerald-900 mb-4">
                         Recent Tips from the Community
                     </h2>
+
                     {loading ? (
                         <div className="space-y-3">
                             {[1, 2, 3].map((i) => (
@@ -174,9 +228,7 @@ const Home = () => {
                                         {tip.content}
                                     </p>
                                     <div className="flex items-center justify-between text-[11px] text-gray-500">
-                                        <span>
-                                            By {tip.authorName || "EcoTrack User"}
-                                        </span>
+                                        <span>By {tip.authorName || "EcoTrack User"}</span>
                                         <span>Upvotes: {tip.upvotes || 0}</span>
                                     </div>
                                 </article>
@@ -190,6 +242,7 @@ const Home = () => {
                     <h2 className="text-2xl font-semibold text-emerald-900 mb-4">
                         Upcoming Green Events
                     </h2>
+
                     {loading ? (
                         <div className="grid gap-4 md:grid-cols-2">
                             {[1, 2].map((i) => (
@@ -208,8 +261,8 @@ const Home = () => {
                         </div>
                     ) : events.length === 0 ? (
                         <p className="text-sm text-gray-500">
-                            No upcoming events right now. Stay tuned for future
-                            clean-ups and workshops.
+                            No upcoming events right now. Stay tuned for future clean-ups and
+                            workshops.
                         </p>
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2">
@@ -232,8 +285,8 @@ const Home = () => {
                                             {ev.description}
                                         </p>
                                         <p className="text-[11px] text-gray-500">
-                                            {ev.currentParticipants || 0} /{" "}
-                                            {ev.maxParticipants || 0} participants joined
+                                            {ev.currentParticipants || 0} / {ev.maxParticipants || 0}{" "}
+                                            participants joined
                                         </p>
                                     </div>
                                 </div>
