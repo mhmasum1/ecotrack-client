@@ -1,32 +1,62 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getChallengeById, joinChallenge, } from "../services/challengeService";
+import toast from "react-hot-toast";
+import { getChallengeById, joinChallenge } from "../services/challengeService";
+import { auth } from "../firebase";
 
 const ChallengeDetails = () => {
     const { id } = useParams();
     const [challenge, setChallenge] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [joining, setJoining] = useState(false);
+    const [alreadyJoined, setAlreadyJoined] = useState(false);
 
     useEffect(() => {
+        setLoading(true);
         getChallengeById(id)
             .then((res) => {
                 setChallenge(res.data);
-                setLoading(false);
             })
             .catch((err) => {
-                console.error("Error loading challenge:", err.message);
-                setLoading(false);
-            });
+                console.error("Error loading challenge:", err?.message);
+            })
+            .finally(() => setLoading(false));
     }, [id]);
 
-    const handleJoin = () => {
-        const userId = "rony@example.com";
-        joinChallenge(id, userId)
-            .then(() => window.alert("Joined challenge successfully!"))
-            .catch((err) => {
-                console.error("Error joining challenge:", err.message);
-                window.alert("Could not join challenge");
-            });
+    const handleJoin = async () => {
+        try {
+            setJoining(true);
+
+            const userId = auth?.currentUser?.email;
+
+            if (!userId) {
+                toast.error("Please login first to join a challenge.");
+                return;
+            }
+
+            await joinChallenge(id, userId);
+
+            toast.success("Joined challenge successfully!");
+            setAlreadyJoined(true);
+
+            setChallenge((prev) =>
+                prev ? { ...prev, participants: (prev.participants ?? 0) + 1 } : prev
+            );
+        } catch (err) {
+            const status = err?.response?.status;
+            const msg = err?.response?.data?.message;
+
+            if (status === 409) {
+                setAlreadyJoined(true);
+                toast.error("You already joined this challenge.");
+                return;
+            }
+
+            toast.error(msg || "Could not join challenge");
+            console.error("Error joining challenge:", err);
+        } finally {
+            setJoining(false);
+        }
     };
 
     if (loading) {
@@ -65,9 +95,7 @@ const ChallengeDetails = () => {
                             </h1>
                             <p className="text-sm text-gray-500 mt-1">
                                 Category:{" "}
-                                <span className="font-medium">
-                                    {challenge.category || "General"}
-                                </span>
+                                <span className="font-medium">{challenge.category || "General"}</span>
                             </p>
                         </div>
                         <div className="badge badge-outline badge-lg">
@@ -107,8 +135,12 @@ const ChallengeDetails = () => {
                     </div>
 
                     <div className="card-actions justify-end mt-6">
-                        <button className="btn btn-primary" onClick={handleJoin}>
-                            Join this Challenge
+                        <button
+                            className="btn btn-primary"
+                            onClick={handleJoin}
+                            disabled={joining || alreadyJoined}
+                        >
+                            {alreadyJoined ? "Already Joined" : joining ? "Joining..." : "Join this Challenge"}
                         </button>
                     </div>
                 </div>
